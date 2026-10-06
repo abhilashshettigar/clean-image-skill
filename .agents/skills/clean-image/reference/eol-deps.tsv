@@ -1,0 +1,28 @@
+# Curated Component-EOL registry (offline fallback + fix hints).
+# Columns (TAB-separated): ecosystem <TAB> dependency <TAB> successor <TAB> reason
+# ecosystem matches the Trivy language type (go, npm, pypi, maven, cargo, rubygems, ...).
+# A match means the whole module is EOL/unmaintained regardless of installed version.
+# Detection is authoritative here; the live ecosyste.ms check catches everything else.
+go	gopkg.in/yaml.v2	gopkg.in/yaml.v3 (or go.yaml.in/yaml/v3)	archived upstream; v2.4.0 is the final release
+go	github.com/dgrijalva/jwt-go	github.com/golang-jwt/jwt/v5	archived upstream
+go	github.com/golang/protobuf	google.golang.org/protobuf	legacy API; superseded by google.golang.org/protobuf
+go	github.com/ghodss/yaml	sigs.k8s.io/yaml	abandoned upstream
+go	github.com/satori/go.uuid	github.com/gofrs/uuid	abandoned upstream
+go	github.com/mitchellh/mapstructure	github.com/go-viper/mapstructure/v2	archived upstream
+go	github.com/golang/glog	k8s.io/klog/v2	archived upstream
+go	gopkg.in/fsnotify.v1	github.com/fsnotify/fsnotify	EOL version line (use un-versioned module)
+go	github.com/Sirupsen/logrus	github.com/sirupsen/logrus	abandoned old import path (case)
+go	gopkg.in/urfave/cli.v1	github.com/urfave/cli/v2	EOL version line
+go	github.com/coreos/go-oidc	github.com/coreos/go-oidc/v3	module path superseded by /v3
+go	github.com/hashicorp/go-msgpack	github.com/hashicorp/go-msgpack/v2	superseded by /v2
+go	github.com/hashicorp/consul	github.com/hashicorp/consul	api/client submodules superseded by api/v1 etc.
+go	github.com/gogo/protobuf	google.golang.org/protobuf	project deprecated
+go	github.com/ugorji/go/codec	github.com/ugorji/go/codec	superseded (v1 path deprecated)
+go	github.com/json-iterator/go	json-iterator/go	unmaintained upstream
+npm	request	-	deprecated by maintainers
+npm	tslint	eslint	deprecated
+npm	node-uuid	uuid	deprecated
+npm	nomnom	commander	deprecated
+npm	babel-eslint	@babel/eslint-parser	deprecated
+pypi	pycrypto	pycryptodome	abandoned upstream
+pypi	distribute	setuptools	abandoned upstream

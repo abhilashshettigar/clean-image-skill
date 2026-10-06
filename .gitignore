@@ -1,0 +1,17 @@
+# Skill runtime artifacts (never commit)
+build/
+reports/
+
+# OS / editor junk
+.DS_Store
+Thumbs.db
+*.swp
+
+# Data / logs
+*.log
+*.xlsx
+*.csv
+
+# Secrets (env vars are the only supported credential channel)
+.env
+*.pem
