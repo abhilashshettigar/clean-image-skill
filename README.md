@@ -19,6 +19,19 @@ Give an agent the image and it will:
 If an image is already clean, it is reported `CLEAN-AS-IS` and nothing is rebuilt
 or pushed.
 
+## Quick start
+
+```bash
+# Install the skill into OpenCode (default), then restart OpenCode
+npx @abhilash1995/clean-image-skill
+
+# Or install cross-agent via the skills CLI (OpenCode, Claude Code, Cursor, Codex)
+npx skills add abhilashshettigar/clean-image-skill --skill clean-image -g -a opencode
+```
+
+Then ask your agent, for example: `Clean this image: docker.io/library/nginx:1.27`.
+See [Install](#install) for flags, other agents, and manual setup.
+
 ## What it does not do
 
 - It is not a runtime protector or a policy engine; it produces cleaner images.
