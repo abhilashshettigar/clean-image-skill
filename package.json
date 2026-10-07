@@ -1,6 +1,9 @@
 {
-  "name": "clean-image-skill",
+  "name": "@abhilash1995/clean-image-skill",
   "version": "1.0.0",
+  "publishConfig": {
+    "access": "public"
+  },
   "description": "Installer for the clean-image Agent Skill: scan a Docker/OCI image for CVEs and end-of-life components, rebuild it clean, push it, and write a per-image note.",
   "keywords": [
     "agent-skills",

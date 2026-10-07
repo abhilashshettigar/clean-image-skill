@@ -63,28 +63,28 @@ written (defaults to the current working directory).
 
 ### One command (recommended)
 
-The skill is published on npm as [`clean-image-skill`](https://www.npmjs.com/package/clean-image-skill).
-Node.js 18+ is required.
+The skill is published on npm as [`@abhilash1995/clean-image-skill`](https://www.npmjs.com/package/@abhilash1995/clean-image-skill).
+Node.js 18+ is required. The installed command is `clean-image-skill`.
 
 ```bash
 # Install into OpenCode (global) — the default
-npx clean-image-skill
+npx @abhilash1995/clean-image-skill
 
 # Install into the current project instead
-npx clean-image-skill --project
+npx @abhilash1995/clean-image-skill --project
 
 # Install into several agents at once
-npx clean-image-skill -a opencode,claude -g --force
+npx @abhilash1995/clean-image-skill -a opencode,claude -g --force
 
 # See what it would do without changing anything
-npx clean-image-skill --list
+npx @abhilash1995/clean-image-skill --list
 
 # Uninstall
-npx clean-image-skill --remove -a all
+npx @abhilash1995/clean-image-skill --remove -a all
 ```
 
-`npx clean-image-skill` copies the bundled skill into the right directory for each
-target agent:
+`@abhilash1995/clean-image-skill` copies the bundled skill into the right directory
+for each target agent:
 
 | Agent | Global | Project (`--project`) |
 |---|---|---|
@@ -184,7 +184,7 @@ the same files but have not been individually exercised.
 .
 ├── README.md
 ├── LICENSE
-├── package.json                 # npm wrapper: clean-image-skill
+├── package.json                 # npm wrapper: @abhilash1995/clean-image-skill
 ├── bin/install.js               # npx installer CLI
 ├── scripts/                     # stage-skill.js, validate-skill.js (repo tooling)
 ├── .github/workflows/           # validate.yml, publish.yml
