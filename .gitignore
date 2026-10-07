@@ -2,6 +2,10 @@
 build/
 reports/
 
+# npm packaging
+node_modules/
+dist/
+
 # OS / editor junk
 .DS_Store
 Thumbs.db

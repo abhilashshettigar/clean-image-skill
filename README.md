@@ -61,26 +61,57 @@ written (defaults to the current working directory).
 
 ## Install
 
-The skill lives at `.agents/skills/clean-image/`, a portable location understood by
-OpenCode, Claude Code, Cursor, and Codex. Clone the repo and copy (or symlink) the
-folder into your agent's skills directory.
+### One command (recommended)
+
+The skill is published on npm as [`clean-image-skill`](https://www.npmjs.com/package/clean-image-skill).
+Node.js 18+ is required.
+
+```bash
+# Install into OpenCode (global) — the default
+npx clean-image-skill
+
+# Install into the current project instead
+npx clean-image-skill --project
+
+# Install into several agents at once
+npx clean-image-skill -a opencode,claude -g --force
+
+# See what it would do without changing anything
+npx clean-image-skill --list
+
+# Uninstall
+npx clean-image-skill --remove -a all
+```
+
+`npx clean-image-skill` copies the bundled skill into the right directory for each
+target agent:
+
+| Agent | Global | Project (`--project`) |
+|---|---|---|
+| `opencode` (default) | `~/.config/opencode/skills/clean-image/` | `.opencode/skills/clean-image/` |
+| `claude` | `~/.claude/skills/clean-image/` | `.claude/skills/clean-image/` |
+| `cursor` | `~/.cursor/skills/clean-image/` | `.cursor/skills/clean-image/` |
+| `codex` | `~/.codex/skills/clean-image/` | `.codex/skills/clean-image/` |
+| `agents` (portable) | `~/.agents/skills/clean-image/` | `.agents/skills/clean-image/` |
+
+### Via the skills CLI (cross-agent)
+
+[`npx skills`](https://github.com/vercel-labs/skills) is the open agent-skills
+installer and uses GitHub as its registry. It reads this repo directly:
+
+```bash
+npx skills add abhilashshettigar/clean-image-skill --skill clean-image -g -a opencode
+```
+
+Drop `-g` for a project-local install. Use `--list` to preview without installing.
+
+### Manual install
+
+Clone the repo and copy (or symlink) the skill folder yourself:
 
 ```bash
 git clone https://github.com/abhilashshettigar/clean-image-skill
-```
-
-**OpenCode — global (recommended):**
-
-```bash
-mkdir -p ~/.config/opencode/skills
 cp -R clean-image-skill/.agents/skills/clean-image ~/.config/opencode/skills/
-```
-
-**OpenCode — project only:**
-
-```bash
-mkdir -p .opencode/skills
-cp -R clean-image-skill/.agents/skills/clean-image .opencode/skills/
 ```
 
 **OpenCode — without copying**, point at the repo via `opencode.json`:
@@ -92,17 +123,15 @@ cp -R clean-image-skill/.agents/skills/clean-image .opencode/skills/
 }
 ```
 
-**Claude Code:**
+### Verify
+
+Restart your agent — skills are loaded at startup. Then check:
 
 ```bash
-mkdir -p ~/.claude/skills
-cp -R clean-image-skill/.agents/skills/clean-image ~/.claude/skills/
+npx skills list
 ```
 
-**Cursor / Codex:** keep `.agents/skills/clean-image/` in your project (or your
-agent's global skills directory).
-
-Restart your agent after installing; skills are loaded at startup.
+or ask the agent to "list installed skills". `clean-image` should appear.
 
 ## Usage
 
@@ -155,11 +184,15 @@ the same files but have not been individually exercised.
 .
 ├── README.md
 ├── LICENSE
+├── package.json                 # npm wrapper: clean-image-skill
+├── bin/install.js               # npx installer CLI
+├── scripts/                     # stage-skill.js, validate-skill.js (repo tooling)
+├── .github/workflows/           # validate.yml, publish.yml
 ├── examples/sample-note.md
-└── .agents/skills/clean-image/
+└── .agents/skills/clean-image/  # the skill (source of truth)
     ├── SKILL.md
-    ├── scripts/       # scan, patch-build, eol-check, push, report
-    └── reference/     # source-rebuild, eol-upgrade, eol-deps registry
+    ├── scripts/                 # scan, patch-build, eol-check, push, report
+    └── reference/               # source-rebuild, eol-upgrade, eol-deps registry
 ```
 
 ## License

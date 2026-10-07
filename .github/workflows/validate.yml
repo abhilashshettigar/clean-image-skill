@@ -1,0 +1,40 @@
+name: validate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate SKILL.md frontmatter
+        run: node scripts/validate-skill.js
+
+      - name: Bash syntax check
+        run: |
+          set -e
+          for f in .agents/skills/clean-image/scripts/*.sh; do
+            bash -n "$f"
+            echo "ok: $f"
+          done
+
+      - name: CLI smoke test
+        run: |
+          set -e
+          node bin/install.js --help > /dev/null
+          node bin/install.js --list
+
+      - name: Package dry run
+        run: |
+          set -e
+          npm pack --dry-run 2>&1 | tee pack.txt
+          grep -q 'dist/clean-image/SKILL.md' pack.txt
+          grep -q 'bin/install.js' pack.txt

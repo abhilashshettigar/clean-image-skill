@@ -1,0 +1,45 @@
+{
+  "name": "clean-image-skill",
+  "version": "1.0.0",
+  "description": "Installer for the clean-image Agent Skill: scan a Docker/OCI image for CVEs and end-of-life components, rebuild it clean, push it, and write a per-image note.",
+  "keywords": [
+    "agent-skills",
+    "opencode",
+    "claude-code",
+    "cursor",
+    "codex",
+    "trivy",
+    "cve",
+    "docker",
+    "oci",
+    "eol",
+    "security"
+  ],
+  "license": "MIT",
+  "author": "Abhilash Shettigar",
+  "type": "commonjs",
+  "bin": {
+    "clean-image-skill": "bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "stage": "node scripts/stage-skill.js",
+    "prepack": "node scripts/stage-skill.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abhilashshettigar/clean-image-skill.git"
+  },
+  "homepage": "https://github.com/abhilashshettigar/clean-image-skill",
+  "bugs": {
+    "url": "https://github.com/abhilashshettigar/clean-image-skill/issues"
+  }
+}
