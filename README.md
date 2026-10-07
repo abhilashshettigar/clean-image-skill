@@ -29,7 +29,15 @@ npx @abhilash1995/clean-image-skill
 npx skills add abhilashshettigar/clean-image-skill --skill clean-image -g -a opencode
 ```
 
-Then ask your agent, for example: `Clean this image: docker.io/library/nginx:1.27`.
+Then invoke the command with one image reference:
+
+```bash
+/clean-image docker.io/library/nginx:1.27
+```
+
+The wrapper installs the `/clean-image` command for OpenCode and Claude Code.
+If you only installed the skill (e.g. via `npx skills`), just ask your agent in
+plain language instead: "clean this image: docker.io/library/nginx:1.27".
 See [Install](#install) for flags, other agents, and manual setup.
 
 ## What it does not do
@@ -107,6 +115,10 @@ for each target agent:
 | `codex` | `~/.codex/skills/clean-image/` | `.codex/skills/clean-image/` |
 | `agents` (portable) | `~/.agents/skills/clean-image/` | `.agents/skills/clean-image/` |
 
+For `opencode` and `claude` it also installs the `/clean-image` slash command
+(`~/.config/opencode/command/clean-image.md`, `~/.claude/commands/clean-image.md`,
+or the project equivalents). Other agents get the skill only.
+
 ### Via the skills CLI (cross-agent)
 
 [`npx skills`](https://github.com/vercel-labs/skills) is the open agent-skills
@@ -148,11 +160,15 @@ or ask the agent to "list installed skills". `clean-image` should appear.
 
 ## Usage
 
-Ask your agent with a single image reference:
+Invoke the `/clean-image` command with one image reference:
 
+```bash
+/clean-image docker.io/library/nginx:1.27
 ```
-Clean this image: docker.io/library/nginx:1.27
-```
+
+If you installed the skill without the command (for example via `npx skills`),
+ask your agent in plain language instead — the skill loads automatically from its
+description: "clean this image: docker.io/library/nginx:1.27".
 
 The agent scans first and decides:
 
@@ -202,6 +218,7 @@ the same files but have not been individually exercised.
 ├── scripts/                     # stage-skill.js, validate-skill.js (repo tooling)
 ├── .github/workflows/           # validate.yml, publish.yml
 ├── examples/sample-note.md
+├── .opencode/command/clean-image.md  # /clean-image slash command
 └── .agents/skills/clean-image/  # the skill (source of truth)
     ├── SKILL.md
     ├── scripts/                 # scan, patch-build, eol-check, push, report

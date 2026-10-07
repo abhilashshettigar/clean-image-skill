@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// clean-image-skill installer: copy the bundled clean-image Agent Skill into
-// one or more coding agents' skills directories. Zero runtime dependencies.
+// clean-image-skill installer: copy the bundled clean-image Agent Skill (and,
+// where supported, the /clean-image slash command) into coding agents' config
+// directories. Zero runtime dependencies.
 "use strict";
 
 const fs = require("fs");
@@ -8,23 +9,32 @@ const os = require("os");
 const path = require("path");
 
 const SKILL_NAME = "clean-image";
+const COMMAND_FILE = "clean-image.md";
 const pkg = require(path.join(__dirname, "..", "package.json"));
 
-// Agent skill directories: [global (under $HOME), project (under cwd)].
+// Per-agent destinations: [global (under $HOME), project (under cwd)].
+// `commands` is omitted for agents with no slash-command support.
 const AGENTS = {
-  opencode: ["~/.config/opencode/skills", ".opencode/skills"],
-  claude: ["~/.claude/skills", ".claude/skills"],
-  cursor: ["~/.cursor/skills", ".cursor/skills"],
-  codex: ["~/.codex/skills", ".codex/skills"],
-  agents: ["~/.agents/skills", ".agents/skills"],
+  opencode: {
+    skills: ["~/.config/opencode/skills", ".opencode/skills"],
+    commands: ["~/.config/opencode/command", ".opencode/command"],
+  },
+  claude: {
+    skills: ["~/.claude/skills", ".claude/skills"],
+    commands: ["~/.claude/commands", ".claude/commands"],
+  },
+  cursor: { skills: ["~/.cursor/skills", ".cursor/skills"] },
+  codex: { skills: ["~/.codex/skills", ".codex/skills"] },
+  agents: { skills: ["~/.agents/skills", ".agents/skills"] },
 };
 
 const HELP = `clean-image-skill v${pkg.version}
 
-Install the clean-image Agent Skill into your coding agent.
+Install the clean-image Agent Skill (and the /clean-image command for OpenCode
+and Claude Code) into your coding agent.
 
 Usage:
-  npx clean-image-skill [options]
+  npx @abhilash1995/clean-image-skill [options]
 
 Options:
   -a, --agent <name>   Target agent(s): opencode (default), claude, cursor,
@@ -32,7 +42,7 @@ Options:
   -p, --project        Install into the current project instead of globally.
   -g, --global         Install to the user directory (default).
       --force          Overwrite an existing installation.
-      --remove         Uninstall the skill from the targeted location(s).
+      --remove         Uninstall the skill/command from the targeted location(s).
       --dry-run        Print the actions without changing anything.
   -l, --list           Alias for --dry-run.
   -y, --yes            Skip confirmation prompts (non-interactive).
@@ -40,10 +50,10 @@ Options:
   -v, --version        Show the version.
 
 Examples:
-  npx clean-image-skill
-  npx clean-image-skill --project -a opencode
-  npx clean-image-skill -a opencode,claude -g --force
-  npx clean-image-skill --remove -a all
+  npx @abhilash1995/clean-image-skill
+  npx @abhilash1995/clean-image-skill --project -a opencode
+  npx @abhilash1995/clean-image-skill -a opencode,claude -g --force
+  npx @abhilash1995/clean-image-skill --remove -a all
 `;
 
 function fail(msg) {
@@ -52,13 +62,7 @@ function fail(msg) {
 }
 
 function parseArgs(argv) {
-  const opts = {
-    agents: [],
-    scope: "global",
-    force: false,
-    remove: false,
-    dryRun: false,
-  };
+  const opts = { agents: [], scope: "global", force: false, remove: false, dryRun: false };
 
   const addAgents = (value) => {
     for (const raw of String(value).split(",")) {
@@ -126,68 +130,83 @@ function parseArgs(argv) {
   return opts;
 }
 
-// Resolve the bundled skill: dist/clean-image (published package), falling back
-// to .agents/skills/clean-image when running from a source checkout.
-function payloadDir() {
+// Locate bundled payloads: dist/ in the published package, falling back to the
+// source tree when running from a checkout.
+function resolvePayloads() {
   const pkgRoot = path.join(__dirname, "..");
-  const candidates = [
+  const firstExisting = (...candidates) => candidates.find((p) => fs.existsSync(p));
+  const skill = firstExisting(
     path.join(pkgRoot, "dist", SKILL_NAME),
-    path.join(pkgRoot, ".agents", "skills", SKILL_NAME),
-  ];
-  for (const dir of candidates) {
-    if (fs.existsSync(path.join(dir, "SKILL.md"))) return dir;
+    path.join(pkgRoot, ".agents", "skills", SKILL_NAME)
+  );
+  if (!skill || !fs.existsSync(path.join(skill, "SKILL.md"))) {
+    fail("bundled skill payload not found (run `npm run stage`)");
   }
-  fail("bundled skill payload not found (run `npm run stage`)");
+  const command = firstExisting(
+    path.join(pkgRoot, "dist", "command", COMMAND_FILE),
+    path.join(pkgRoot, ".opencode", "command", COMMAND_FILE)
+  );
+  return { skill, command };
 }
 
-function targetDir(agent, scope) {
-  const [globalRel, projectRel] = AGENTS[agent];
-  const base =
-    scope === "global"
-      ? path.join(os.homedir(), globalRel.replace(/^~[/\\]/, ""))
-      : path.join(process.cwd(), projectRel);
-  return path.join(base, SKILL_NAME);
+function baseDir(scope, rel) {
+  return scope === "global"
+    ? path.join(os.homedir(), rel.replace(/^~[/\\]/, ""))
+    : path.join(process.cwd(), rel);
+}
+
+function installOne({ src, dest, label, force, dryRun }) {
+  const exists = fs.existsSync(dest);
+  if (exists && !force) {
+    console.log(`skip   ${label}: already installed — use --force to overwrite\n       ${dest}`);
+    return false;
+  }
+  if (!dryRun) {
+    if (exists) fs.rmSync(dest, { recursive: true, force: true });
+    fs.mkdirSync(path.dirname(dest), { recursive: true });
+    fs.cpSync(src, dest, { recursive: true });
+  }
+  console.log(`${dryRun ? "would install" : "installed"} ${dest}`);
+  return true;
+}
+
+function removeOne({ dest, label, dryRun }) {
+  if (!fs.existsSync(dest)) {
+    console.log(`skip   ${label}: not installed`);
+    return false;
+  }
+  if (!dryRun) fs.rmSync(dest, { recursive: true, force: true });
+  console.log(`${dryRun ? "would remove" : "removed"} ${dest}`);
+  return true;
 }
 
 function main() {
   const opts = parseArgs(process.argv.slice(2));
-  const payload = payloadDir();
-  const verb = opts.remove ? "remove" : "install";
-
+  const payload = resolvePayloads();
   let changed = 0;
+
   for (const agent of opts.agents) {
-    const dest = targetDir(agent, opts.scope);
-    const exists = fs.existsSync(dest);
+    const spec = AGENTS[agent];
+    const skillDest = path.join(baseDir(opts.scope, spec.skills[opts.scope === "global" ? 0 : 1]), SKILL_NAME);
+    const targets = [{ src: payload.skill, dest: skillDest, label: `${agent} skill` }];
 
-    if (opts.remove) {
-      if (!exists) {
-        console.log(`skip   ${agent} (${opts.scope}): not installed`);
-        continue;
-      }
-      if (!opts.dryRun) fs.rmSync(dest, { recursive: true, force: true });
-      console.log(`${opts.dryRun ? "would remove" : "removed"} ${dest}`);
-      changed++;
-      continue;
+    if (spec.commands && payload.command) {
+      const cmdBase = baseDir(opts.scope, spec.commands[opts.scope === "global" ? 0 : 1]);
+      targets.push({ src: payload.command, dest: path.join(cmdBase, COMMAND_FILE), label: `${agent} command` });
     }
 
-    if (exists && !opts.force) {
-      console.log(`skip   ${agent} (${opts.scope}): already installed — use --force to overwrite\n       ${dest}`);
-      continue;
+    for (const t of targets) {
+      const ok = opts.remove
+        ? removeOne({ ...t, dryRun: opts.dryRun })
+        : installOne({ ...t, force: opts.force, dryRun: opts.dryRun });
+      if (ok) changed++;
     }
-
-    if (!opts.dryRun) {
-      if (exists) fs.rmSync(dest, { recursive: true, force: true });
-      fs.mkdirSync(path.dirname(dest), { recursive: true });
-      fs.cpSync(payload, dest, { recursive: true });
-    }
-    console.log(`${opts.dryRun ? "would install" : "installed"} ${dest}`);
-    changed++;
   }
 
   if (opts.dryRun) {
-    console.log(`\ndry run: no changes made (${verb} plan for ${opts.agents.join(", ")})`);
+    console.log(`\ndry run: no changes made (${opts.remove ? "remove" : "install"} plan for ${opts.agents.join(", ")})`);
   } else if (!opts.remove && changed > 0) {
-    console.log("\nRestart your agent to pick up the new skill, then ask it to clean an image.");
+    console.log("\nRestart your agent, then use /clean-image <image> (OpenCode/Claude Code).");
   }
 }
 

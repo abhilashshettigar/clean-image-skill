@@ -37,4 +37,5 @@ jobs:
           set -e
           npm pack --dry-run 2>&1 | tee pack.txt
           grep -q 'dist/clean-image/SKILL.md' pack.txt
+          grep -q 'dist/command/clean-image.md' pack.txt
           grep -q 'bin/install.js' pack.txt
